@@ -1,20 +1,24 @@
-import { Application } from "../contracts/application";
+import { App } from "../contracts/application";
 import express, { Request, Response } from "express";
 import { Route } from "../../routes/contracts/route";
 import { HttpRequest, HttpResponse } from "../../../app/contracts/http";
 
-export class ExpressAdapter implements Application {
+export class ExpressAdapter implements App {
   private _app: express.Express;
   constructor() {
     this._app = express();
   }
+
   listen(port: number): void {
     this._app.listen(port, () => {
       console.info(`${ExpressAdapter.name} is running on port ${port}`);
     });
   }
-  request(req: Request): HttpRequest<unknown> {
-    return { body: req.body, params: req.params } as HttpRequest<unknown>;
+  request(expressRequest: Request) {
+    return {
+      body: expressRequest.body,
+      params: expressRequest.params,
+    } as HttpRequest<unknown>;
   }
 
   response(actionResponse: HttpResponse, expressResponse: Response) {
@@ -29,7 +33,7 @@ export class ExpressAdapter implements Application {
   }
   createRoute(routes: Route[]): void {
     // receive all route based in our pattern and convert to express version
-    routes.map((route) =>
+    routes.forEach((route) =>
       this._app[route.method](route.path, async (req, res) => {
         const actionResponse = await route.controller.action(this.request(req));
         return this.response(actionResponse, res);

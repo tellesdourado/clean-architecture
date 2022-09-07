@@ -1,5 +1,5 @@
 import { HttpRequest, HttpResponse } from "./http";
 
-export interface Controller {
+export abstract class Controller {
   action: (request: HttpRequest<unknown>) => Promise<HttpResponse>;
 }
